@@ -1,40 +1,67 @@
 require("dotenv").config(); // Load environment variables
+const express = require("express");
 const https = require("https");
 const fs = require("fs");
 const axios = require("axios");
 const { execSync } = require("child_process");
 const unzipper = require("unzipper");
+const cors = require("cors");
+const path = require("path");
 
-// Environment variables
-const PORT_SERVER = process.env.PORT_SERVER || 4433;
-const SERVER_HOSTNAME = process.env.SERVER_HOSTNAME || "localhost";
-const CA_SERVER_URL =
-  `http://${process.env.CA_HOSTNAME}:${process.env.PORT_CA}` ||
-  "http://localhost:3000";
-const PYTHON_SERVER_URL = "http://127.0.0.1:5000/encrypt";
+// Initialize Express app
+const app = express();
+app.use(express.json()); // Middleware to parse JSON request body
+app.use(express.urlencoded({ extended: true })); // To parse URL-encoded bodies
 
-// Paths to server key, CSR, and certificates
+// Set EJS as the view engine
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views")); // Define views directory
+
+// CORS setup to allow requests from Next.js frontend
+app.use(cors({ origin: "*" }));
+
+// Define paths for certificates and keys
 const SERVER_KEY_PATH = "./server.key";
 const SERVER_CSR_PATH = "./server.csr";
 const SERVER_CERT_PATH = "./serverfiles/server.crt";
 const CA_CERT_PATH = "./serverfiles/ca.crt";
 
+// Environment variables
+const PORT_SERVER = process.env.PORT_SERVER || 4433;
+const SERVER_HOSTNAME = process.env.SERVER_HOSTNAME || "localhost";
+const PYTHON_SERVER_URL = "http://127.0.0.1:5000/encrypt"; // Python server URL
+
+// Define the function that generates the server key and CSR
 function generateServerKeyAndCSR() {
-  execSync(
-    `openssl genpkey -algorithm RSA -out ${SERVER_KEY_PATH} -aes256 -pass pass:mysecurepassword`
-  );
-  execSync(
-    `openssl req -new -key ${SERVER_KEY_PATH} -out ${SERVER_CSR_PATH} -passin pass:mysecurepassword -subj "/C=US/ST=State/L=City/O=MyOrg/OU=MyUnit/CN=${SERVER_HOSTNAME}"`
-  );
-  console.log("Server key and CSR generated.");
+  try {
+    // Generate private key
+    console.log("Generating server private key...");
+    execSync(
+      `openssl genpkey -algorithm RSA -out ${SERVER_KEY_PATH} -aes256 -pass pass:mysecurepassword`
+    );
+    
+    // Generate Certificate Signing Request (CSR)
+    console.log("Generating server CSR...");
+    execSync(
+      `openssl req -new -key ${SERVER_KEY_PATH} -out ${SERVER_CSR_PATH} -passin pass:mysecurepassword -subj "/C=US/ST=State/L=City/O=MyOrg/OU=MyUnit/CN=localhost"`
+    );
+    
+    console.log("Server key and CSR generated successfully.");
+  } catch (error) {
+    console.error("Error generating server key and CSR:", error);
+  }
 }
 
+// Call the function to generate the key and CSR
+generateServerKeyAndCSR();
+
+// Function to sign CSR (and further implementation continues...)
 async function signCSR() {
   const csr = fs.readFileSync(SERVER_CSR_PATH, "utf8");
 
   try {
     const response = await axios.post(
-      `${CA_SERVER_URL}/sign-csr`,
+      `http://${process.env.CA_HOSTNAME}:${process.env.PORT_CA}/sign-csr`,
       { csr },
       {
         responseType: "stream",
@@ -58,6 +85,7 @@ async function signCSR() {
   }
 }
 
+// Function to extract certificates from the zip file
 async function extractCertsFromZip(zipPath) {
   return new Promise((resolve, reject) => {
     fs.createReadStream(zipPath)
@@ -67,8 +95,8 @@ async function extractCertsFromZip(zipPath) {
   });
 }
 
+// Function to start the HTTPS server
 async function startServer() {
-  generateServerKeyAndCSR();
   await signCSR();
 
   const options = {
@@ -79,45 +107,40 @@ async function startServer() {
     rejectUnauthorized: true,
   };
 
-  const server = https.createServer(options, async (req, res) => {
-    if (req.method === "POST" && req.url === "/encrypt") {
-      let body = "";
-      req.on("data", chunk => {
-        body += chunk;
-      });
+  const server = https.createServer(options, app); // Use Express app for handling requests
 
-      req.on("end", async () => {
-        try {
-          const { vi } = JSON.parse(body);
-
-          if (!vi) {
-            res.writeHead(400, { "Content-Type": "application/json" });
-            res.end(JSON.stringify({ error: "vi is required" }));
-            return;
-          }
-
-          // Forward vi to the Python server
-          const response = await axios.post(PYTHON_SERVER_URL, { vi });
-          const { c1, c2 } = response.data;
-
-          res.writeHead(200, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ message: "Encryption successful", c1, c2 }));
-        } catch (error) {
-          console.error("Error processing encryption request:", error.message);
-          if (error.response) {
-            console.error("Response data:", error.response.data);
-            console.error("Response status:", error.response.status);
-          }
-          res.writeHead(500, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ error: "Internal server error" }));
-        }
-      });
-    } else {
-      res.writeHead(404, { "Content-Type": "text/plain" });
-      res.end("Not Found");
-    }
+  // Render the form (root route)
+  app.get("/", (req, res) => {
+    res.render("index"); // Render the index.ejs file
   });
 
+  // Handle the /encrypt route
+  app.post("/encrypt", async (req, res) => {
+    try {
+      const { vi } = req.body;
+      
+      // Log the URL and data being sent
+      console.log(`Sending request to ${PYTHON_SERVER_URL} with vi=${vi}`);
+      
+      const response = await axios.post(PYTHON_SERVER_URL, { vi });
+      
+      console.log("Response from Python server:", response.data);
+
+      // Render a result page with encryption details using EJS
+      res.render("result", {
+        message: "Encryption successful",
+        c1: response.data.c1,
+        c2: response.data.c2,
+      });
+    } catch (error) {
+      console.error("Error with Python server:", error.message);
+      if (error.response) {
+        console.error("Error response:", error.response.data);
+      }
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+  
   server.listen(PORT_SERVER, SERVER_HOSTNAME, () => {
     console.log(
       `HTTPS server running at https://${SERVER_HOSTNAME}:${PORT_SERVER}`
