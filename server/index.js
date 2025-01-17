@@ -5,14 +5,15 @@ const axios = require("axios");
 const { execSync } = require("child_process");
 const unzipper = require("unzipper");
 
-// Load environment variables
+// Environment variables
 const PORT_SERVER = process.env.PORT_SERVER || 4433;
 const SERVER_HOSTNAME = process.env.SERVER_HOSTNAME || "localhost";
 const CA_SERVER_URL =
   `http://${process.env.CA_HOSTNAME}:${process.env.PORT_CA}` ||
   "http://localhost:3000";
+const PYTHON_SERVER_URL = "http://127.0.0.1:5000/encrypt";
 
-// Paths to server key, CSR, and certificate
+// Paths to server key, CSR, and certificates
 const SERVER_KEY_PATH = "./server.key";
 const SERVER_CSR_PATH = "./server.csr";
 const SERVER_CERT_PATH = "./serverfiles/server.crt";
@@ -52,7 +53,7 @@ async function signCSR() {
     await extractCertsFromZip(zipPath);
     console.log("Certificates retrieved.");
   } catch (error) {
-    console.error("Error signing CSR:", error);
+    console.error("Error signing CSR:", error.message);
     process.exit(1);
   }
 }
@@ -78,9 +79,43 @@ async function startServer() {
     rejectUnauthorized: true,
   };
 
-  const server = https.createServer(options, (req, res) => {
-    res.writeHead(200, { "Content-Type": "text/plain" });
-    res.end("Hello, client! Connected securely.\n");
+  const server = https.createServer(options, async (req, res) => {
+    if (req.method === "POST" && req.url === "/encrypt") {
+      let body = "";
+      req.on("data", chunk => {
+        body += chunk;
+      });
+
+      req.on("end", async () => {
+        try {
+          const { vi } = JSON.parse(body);
+
+          if (!vi) {
+            res.writeHead(400, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ error: "vi is required" }));
+            return;
+          }
+
+          // Forward vi to the Python server
+          const response = await axios.post(PYTHON_SERVER_URL, { vi });
+          const { c1, c2 } = response.data;
+
+          res.writeHead(200, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ message: "Encryption successful", c1, c2 }));
+        } catch (error) {
+          console.error("Error processing encryption request:", error.message);
+          if (error.response) {
+            console.error("Response data:", error.response.data);
+            console.error("Response status:", error.response.status);
+          }
+          res.writeHead(500, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: "Internal server error" }));
+        }
+      });
+    } else {
+      res.writeHead(404, { "Content-Type": "text/plain" });
+      res.end("Not Found");
+    }
   });
 
   server.listen(PORT_SERVER, SERVER_HOSTNAME, () => {
