@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secure Voting</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <h1>Secure Voting System</h1>
+  <form method="POST" action="/vote">
+    <label for="candidate">Select a candidate:</label>
+    <select name="candidate" id="candidate" required>
+      <option value="Alice">Alice</option>
+      <option value="Bob">Bob</option>
+    </select>
+    <button type="submit">Vote</button>
+  </form>
+  <% if (message) { %>
+    <p><%= message %></p>
+  <% } %>
+</body>
+</html>
