@@ -13,8 +13,8 @@ const CA_SERVER_URL =
   "http://localhost:3000";
 
 // Paths to server key, CSR, and certificate
-const SERVER_KEY_PATH = "./serverfiles/server.key";
-const SERVER_CSR_PATH = "./serverfiles/server.csr";
+const SERVER_KEY_PATH = "./server.key";
+const SERVER_CSR_PATH = "./server.csr";
 const SERVER_CERT_PATH = "./serverfiles/server.crt";
 const CA_CERT_PATH = "./serverfiles/ca.crt";
 
@@ -40,7 +40,7 @@ async function signCSR() {
       }
     );
 
-    const zipPath = "./serverfiles/certs.zip";
+    const zipPath = "./certs.zip";
     const writer = fs.createWriteStream(zipPath);
     response.data.pipe(writer);
 
