@@ -3,14 +3,94 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Encrypt Value</title>
+  <title>Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #fafafa;
+    }
+    .card {
+      background-color: #ffffff;
+      border: 1px solid #dbdbdb;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      width: 350px;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: 500;
+      margin-bottom: 20px;
+      color: #262626;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    label {
+      width: 100%;
+      text-align: left;
+      margin-bottom: 5px;
+      font-size: 14px;
+      color: #8e8e8e;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #dbdbdb;
+      border-radius: 5px;
+      background-color: #fafafa;
+      font-size: 14px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      font-size: 14px;
+      font-weight: bold;
+      color: #ffffff;
+      background-color: #0095f6;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #007bb5;
+    }
+    .footer {
+      margin-top: 20px;
+      font-size: 12px;
+      color: #8e8e8e;
+    }
+    .footer a {
+      color: #0095f6;
+      text-decoration: none;
+    }
+    .footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
-  <h1>Encrypt Value</h1>
-  <form action="/encrypt" method="POST">
-    <label for="vi">Enter value for vi:</label>
-    <input type="number" id="vi" name="vi" required>
-    <button type="submit">Encrypt</button>
-  </form>
+  <div class="card">
+    <h1>Login</h1>
+    <form action="/verify" method="POST">
+      <label for="name">Enter your name:</label>
+      <input type="text" id="name" name="name" placeholder="Your name" required>
+
+      <label for="id">Enter your ID:</label>
+      <input type="text" id="id" name="id" placeholder="Your ID" required>
+
+      <button type="submit">Submit</button>
+    </form>
+  </div>
 </body>
 </html>

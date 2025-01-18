@@ -1,15 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Vote</title>
-    <link rel="stylesheet" href="/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cast Your Vote</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .card {
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      width: 300px;
+      text-align: center;
+    }
+
+    .card h1 {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .party-container {
+      display: flex;
+      justify-content: space-around;
+      margin: 20px 0;
+    }
+
+    .party {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: #e8e8ff;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 15px;
+      width: 100px;
+      cursor: pointer;
+      transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
+    }
+
+    .party:hover {
+      background-color: #d0d0ff;
+      transform: scale(1.05);
+    }
+
+    .party img {
+      width: 50px;
+      height: 50px;
+      margin-bottom: 10px;
+    }
+
+    .party span {
+      font-size: 1rem;
+      font-weight: bold;
+      color: #333;
+    }
+
+    button {
+      background-color: #0095f6;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
+  <div class="card">
     <h1>Cast Your Vote</h1>
-    <form method="POST" action="/">
-        <label for="vote">Enter your vote (1 or 0):</label>
-        <input type="number" id="vote" name="vote" required min="0" max="1">
-        <button type="submit">Submit</button>
-    </form>
+    <form action="/encrypt" method="POST">
+        <input type="hidden" name="name" value="<%= name %>">
+        <input type="hidden" name="id" value="<%= id %>">
+        <div class="party-container">
+          <div class="party" onclick="selectParty(-1)">
+            <img src="party-a-logo.png" alt="Party A">
+            <span>Party A</span>
+          </div>
+          <div class="party" onclick="selectParty(1)">
+            <img src="party-b-logo.png" alt="Party B">
+            <span>Party B</span>
+          </div>
+        </div>
+        <input type="hidden" id="vi" name="vi">
+        <button type="submit">Submit Vote</button>
+      </form>
+      
+  </div>
+
+  <script>
+    function selectParty(vi) {
+      const viInput = document.getElementById("vi");
+      viInput.value = vi;
+
+      // Highlight selected party
+      document.querySelectorAll(".party").forEach((party) => {
+        party.style.backgroundColor = "#e8e8ff"; // Reset background
+      });
+      event.currentTarget.style.backgroundColor = "#d0d0ff";
+    }
+  </script>
 </body>
 </html>
