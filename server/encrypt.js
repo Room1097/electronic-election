@@ -1,10 +1,9 @@
- // encrypt.js
 const express = require("express");
 const axios = require("axios");
 const router = express.Router();
 const { validUsers } = require("./user");
 
-const PYTHON_SERVER_URL = "http://127.0.0.1:5000/encrypt";
+const PYTHON_SERVER_URL = "http://127.0.0.1:5000"; // Base URL for the Python server
 
 // Root route to render the login page
 router.get("/", (req, res) => {
@@ -56,9 +55,9 @@ router.post("/encrypt", async (req, res) => {
       return;
     }
 
-    console.log(`Sending request to ${PYTHON_SERVER_URL} with vi=${vi}`);
+    console.log(`Sending request to ${PYTHON_SERVER_URL}/encrypt with vi=${vi}`);
 
-    const response = await axios.post(PYTHON_SERVER_URL, { vi });
+    const response = await axios.post(`${PYTHON_SERVER_URL}/encrypt`, { vi });
 
     console.log("Response from Python server:", response.data);
 
@@ -74,6 +73,31 @@ router.post("/encrypt", async (req, res) => {
       console.error("Error response:", error.response.data);
     }
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Handle the /tally route
+router.get("/tally", async (req, res) => {
+  try {
+    console.log(`Requesting tally results from ${PYTHON_SERVER_URL}/tally`);
+
+    const response = await axios.get(`${PYTHON_SERVER_URL}/tally`);
+
+    console.log("Response from Python server:", response.data);
+
+    const { product_c1, product_c2 } = response.data;
+
+    res.render("tally", {
+      message: "Tally results:",
+      product_c1,
+      product_c2,
+    });
+  } catch (error) {
+    console.error("Error with Python server:", error.message);
+    if (error.response) {
+      console.error("Error response:", error.response.data);
+    }
+    res.status(500).render("error", { message: "Unable to fetch tally results." });
   }
 });
 

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tally Results</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 50px;
+    }
+    .results {
+      font-size: 1.2rem;
+      color: #333;
+    }
+    .result {
+      margin-top: 10px;
+    }
+    a {
+      color: blue;
+      text-decoration: none;
+      margin-top: 20px;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tally Results</h1>
+  <div class="results">
+    <p class="result">Product of c1 mod p: <strong><%= product_c1 %></strong></p>
+    <p class="result">Product of c2 mod p: <strong><%= product_c2 %></strong></p>
+  </div>
+  <a href="/">Back to Home</a>
+</body>
+</html>
