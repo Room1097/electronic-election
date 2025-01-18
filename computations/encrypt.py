@@ -70,5 +70,41 @@ def setup():
         "shares_sent": responses
     }), 200
 
+@app.route('/encrypt', methods=['POST'])
+def encrypt():
+    data = request.get_json()
+    vi = data.get('vi')
+
+    if vi is None:
+        return jsonify({"error": "vi is required"}), 400
+
+    try:
+        vi = int(vi)  # Ensure vi is an integer
+        y = random.randint(1, p - 2)  # Random ephemeral key
+        c1 = pow(g, y, p)
+        c2 = (vi * pow(h, y, p)) % p
+
+        # Store c1 and c2 in a local text file
+        with open('encrypted_data.txt', 'a') as file:
+            file.write(f"{c1} {c2}\n")
+
+        return jsonify({"message": "Encryption successful", "c1": c1, "c2": c2}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/tally', methods=['GET'])
+def tally():
+    file_path = "encrypted_data.txt"
+    try:
+        product_c1, product_c2 = calculate_modular_product(file_path, p)
+        return jsonify({
+            "message": "Tally successful",
+            "product_c1": product_c1,
+            "product_c2": product_c2
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     app.run(port=5000)
