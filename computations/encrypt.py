@@ -71,9 +71,16 @@ def calculate_w1_w2(product_c1, data_from_5001, data_from_5002):
 # Calculate c1_secret using w1, w2, and constants l1, l2
 def calculate_c1_secret(w1, w2, l1=2, l2=-1):
     w1_l1 = pow(w1, l1, p)  # w1^l1 mod p
-    w2_l2 = pow(w2, l2, p)  # w2^l2 mod p
+    
+    # If l2 is -1, calculate modular inverse of w2 modulo p
+    if l2 == -1:
+        w2_l2 = pow(w2, p-2, p)  # w2^(-1) mod p (modular inverse of w2)
+    else:
+        w2_l2 = pow(w2, l2, p)  # w2^l2 mod p
+
     c1_secret = (w1_l1 * w2_l2) % p  # (w1^l1 * w2^l2) mod p
     return c1_secret
+
 
 # Calculate d such that m = g^d mod p by brute-force checking in range -5 to 5
 def calculate_d(m, g, p):
