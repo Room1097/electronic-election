@@ -25,6 +25,20 @@ def receive():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/get-secret', methods=['GET'])
+def get_secret():
+    try:
+        # Read the value from the file
+        if os.path.exists(DATA_FILE):
+            with open(DATA_FILE, 'r') as f:
+                data = f.read().strip()
+
+            return jsonify({'message': 'Data retrieved successfully.', 'data': data}), 200
+        else:
+            return jsonify({'error': 'Data file does not exist.'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     # Ensure the data file exists
     if not os.path.exists(DATA_FILE):
