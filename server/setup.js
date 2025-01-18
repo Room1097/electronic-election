@@ -55,6 +55,7 @@ async function signCSR() {
     console.error("Error signing CSR:", error.message);
     process.exit(1);
   }
+  
 }
 
 async function extractCertsFromZip(zipPath) {
@@ -66,9 +67,18 @@ async function extractCertsFromZip(zipPath) {
   });
 }
 
+async function createShare() {
+  try {
+    const response = await axios.get("http://127.0.0.1:5000/setup");
+    console.log("Flask setup API response:", response.data);
+  } catch (error) {
+    console.error("Error calling Flask setup API:", error.message);
+  }
+}
 async function setupServer(app, https) {
   generateServerKeyAndCSR();
   await signCSR();
+  await createShare()
 
   const options = {
     key: fs.readFileSync(SERVER_KEY_PATH),
