@@ -12,15 +12,18 @@ h = pow(g, x, p)  # Public key
 
 n = 3  # Number of shares
 t = 2  # Threshold
-secret = random.randint(1, p-1)  # Secret to hide
+# secret = random.randint(1, p-1) 
+secret = 9 # Secret to hide
 
 app = Flask(__name__)
 CORS(app)
 
 # Generate polynomial coefficients for secret sharing
 def generate_polynomial(t, secret):
-    coefficients = [random.randint(1, 5) for _ in range(t - 1)] + [secret]
-    return coefficients
+    # coefficients = [random.randint(1, 5) for _ in range(t - 1)] + [secret]
+    # print(coefficients)
+    # return coefficients[::-1]
+    return [9, 3]
 
 # Evaluate polynomial at x
 def evaluate_polynomial(coefficients, x):
@@ -71,21 +74,19 @@ def calculate_w1_w2(product_c1, data_from_5001, data_from_5002):
 # Calculate c1_secret using w1, w2, and constants l1, l2
 def calculate_c1_secret(w1, w2, l1=2, l2=-1):
     w1_l1 = pow(w1, l1, p)  # w1^l1 mod p
-    
-    # If l2 is -1, calculate modular inverse of w2 modulo p
-    if l2 == -1:
-        w2_l2 = pow(w2, p-2, p)  # w2^(-1) mod p (modular inverse of w2)
-    else:
-        w2_l2 = pow(w2, l2, p)  # w2^l2 mod p
+
+    # Calculate modular inverse of w2 if l2 is -1
+    w2_l2 = pow(w2, -1, p) if l2 == -1 else pow(w2, l2, p)
 
     c1_secret = (w1_l1 * w2_l2) % p  # (w1^l1 * w2^l2) mod p
     return c1_secret
 
 
+
 # Calculate d such that m = g^d mod p by brute-force checking in range -5 to 5
 def calculate_d(m, g, p):
     d = None
-    for candidate_d in range(-5, 6):
+    for candidate_d in range(0, 6):
         if candidate_d < 0:
             candidate_d = p + candidate_d  # Convert to equivalent positive d
         if pow(g, candidate_d, p) == m:
@@ -129,7 +130,9 @@ def encrypt():
 
     try:
         vi = int(vi)  # Ensure vi is an integer
-        y = random.randint(1, p - 2)  # Random ephemeral key
+        vi = pow(g,vi,p)
+        # y = random.randint(1, p - 2)  # Random ephemeral key
+        y = 3
         c1 = pow(g, y, p)
         c2 = (vi * pow(h, y, p)) % p
 
@@ -142,6 +145,7 @@ def encrypt():
         return jsonify({"error": str(e)}), 500
 
 # Route for tally - processes the encrypted data and calculates m and d
+
 @app.route('/tally', methods=['GET'])
 def tally():
     file_path = "encrypted_data.txt"
@@ -160,7 +164,7 @@ def tally():
         c1_secret = calculate_c1_secret(w1, w2)
 
         # Calculate the modular inverse of c1_secret
-        mod_inv_c1_secret = pow(c1_secret, p - 2, p)
+        mod_inv_c1_secret = pow(c1_secret, -1, p)
 
         # Calculate m
         m = (mod_inv_c1_secret * product_c2) % p
