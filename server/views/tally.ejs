@@ -28,8 +28,17 @@
 <body>
   <h1>Tally Results</h1>
   <div class="results">
+    <p class="result">Message: <strong><%= message %></strong></p>
     <p class="result">Product of c1 mod p: <strong><%= product_c1 %></strong></p>
     <p class="result">Product of c2 mod p: <strong><%= product_c2 %></strong></p>
+    <p class="result">Data from Server 5001: <strong><%= data_from_5001 %></strong></p>
+    <p class="result">Data from Server 5002: <strong><%= data_from_5002 %></strong></p>
+    <p class="result">Value w1: <strong><%= w1 %></strong></p>
+    <p class="result">Value w2: <strong><%= w2 %></strong></p>
+    <p class="result">c1 Secret: <strong><%= c1_secret %></strong></p>
+    <p class="result">Modular Inverse of c1 Secret: <strong><%= mod_inv_c1_secret %></strong></p>
+    <p class="result">Decrypted Message (m): <strong><%= m %></strong></p>
+    <p class="result">Exponent d: <strong><%= d %></strong></p>
   </div>
   <a href="/">Back to Home</a>
 </body>

@@ -3,14 +3,12 @@ const axios = require("axios");
 const router = express.Router();
 const { validUsers } = require("./user");
 
-const PYTHON_SERVER_URL = "http://127.0.0.1:5000"; // Base URL for the Python server
+const PYTHON_SERVER_URL = "http://127.0.0.1:5000";
 
-// Root route to render the login page
 router.get("/", (req, res) => {
   res.render("index");
 });
 
-// Route to verify name and ID
 router.post("/verify", (req, res) => {
   const { name, id } = req.body;
 
@@ -20,7 +18,6 @@ router.post("/verify", (req, res) => {
 
   if (user) {
     if (user.voteCasted) {
-      // User has already voted
       res.status(403).render("error", {
         message: "You have already casted your vote.",
       });
@@ -33,7 +30,6 @@ router.post("/verify", (req, res) => {
   }
 });
 
-// Handle the /encrypt route
 router.post("/encrypt", async (req, res) => {
   try {
     const { vi, name, id } = req.body;
@@ -48,7 +44,6 @@ router.post("/encrypt", async (req, res) => {
     }
 
     if (user.voteCasted) {
-      // User has already voted
       res.status(403).render("error", {
         message: "You have already casted your vote.",
       });
@@ -61,7 +56,6 @@ router.post("/encrypt", async (req, res) => {
 
     console.log("Response from Python server:", response.data);
 
-    // Mark the user as having cast their vote
     user.voteCasted = true;
 
     res.render("success", {
@@ -76,7 +70,7 @@ router.post("/encrypt", async (req, res) => {
   }
 });
 
-// Handle the /tally route
+
 router.get("/tally", async (req, res) => {
   try {
     console.log(`Requesting tally results from ${PYTHON_SERVER_URL}/tally`);
@@ -85,19 +79,43 @@ router.get("/tally", async (req, res) => {
 
     console.log("Response from Python server:", response.data);
 
-    const { product_c1, product_c2 } = response.data;
-
-    res.render("tally", {
-      message: "Tally results:",
+    const {
+      message,
       product_c1,
       product_c2,
+      data_from_5001,
+      data_from_5002,
+      w1,
+      w2,
+      c1_secret,
+      mod_inv_c1_secret,
+      m,
+      d,
+    } = response.data;
+
+    res.render("tally", {
+      message,              
+      product_c1,           
+      product_c2,           
+      data_from_5001,       
+      data_from_5002,       
+      w1,                   
+      w2,                   
+      c1_secret,            
+      mod_inv_c1_secret,    
+      m,                    
+      d,                    
     });
   } catch (error) {
     console.error("Error with Python server:", error.message);
     if (error.response) {
       console.error("Error response:", error.response.data);
     }
-    res.status(500).render("error", { message: "Unable to fetch tally results." });
+
+
+    res.status(500).render("error", {
+      message: "Unable to fetch tally results.",
+    });
   }
 });
 
