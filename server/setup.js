@@ -78,7 +78,7 @@ async function createShare() {
 async function setupServer(app, https) {
   generateServerKeyAndCSR();
   await signCSR();
-  await createShare()
+  await createShare();
 
   const options = {
     key: fs.readFileSync(SERVER_KEY_PATH),
