@@ -1,0 +1,21 @@
+version: '3'
+services:
+  flask-app-1:
+    build: .
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+    
+  flask-app-2:
+    build: .
+    ports:
+      - "5002:5002"
+    environment:
+      - PORT=5002
+  flask-app-3:
+    build: .
+    ports:
+      - "5003:5003"
+    environment:
+      - PORT=5003
