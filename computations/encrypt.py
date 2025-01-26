@@ -6,13 +6,12 @@ from flask_cors import CORS
 
 p = 23
 g = 5 
-x = 3 
-h = pow(g, x, p) 
+secret = 3 
+h = pow(g, secret, p) 
 
 n = 3  
 t = 2  
-secret = random.randint(1, p-1) 
-# secret = 9 
+# secret = random.randint(1, p-1) 
 
 app = Flask(__name__)
 CORS(app)
@@ -41,7 +40,7 @@ def calculate_modular_product(file_path, prime_p):
     product_c1 = reduce(lambda x, y: (x * y) % prime_p, c1_values, 1)
     product_c2 = reduce(lambda x, y: (x * y) % prime_p, c2_values, 1)
 
-    return product_c1, product_c2
+    return product_c1, product_c2, len(c1_values)
 
 def fetch_data_from_servers():
     response_5001 = requests.get('http://127.0.0.1:5001/get-secret')
@@ -59,11 +58,16 @@ def fetch_data_from_servers():
     return data_from_5001, data_from_5002
 
 def calculate_w1_w2(product_c1, data_from_5001, data_from_5002):
+    print(product_c1)
     w1 = pow(product_c1, data_from_5001, p) 
     w2 = pow(product_c1, data_from_5002, p) 
+    print(w1)
+    print(w2)
     return w1, w2
 
 def calculate_c1_secret(w1, w2, l1=2, l2=-1):
+    print(w1)
+    print(w2)
     w1_l1 = pow(w1, l1, p)  # w1^l1 mod p
 
     w2_l2 = pow(w2, -1, p) if l2 == -1 else pow(w2, l2, p)
@@ -71,17 +75,28 @@ def calculate_c1_secret(w1, w2, l1=2, l2=-1):
     c1_secret = (w1_l1 * w2_l2) % p  # (w1^l1 * w2^l2) mod p
     return c1_secret
 
-
-
-def calculate_d(m, g, p):
+def calculate_d(m, g, p, votes):
     d = None
-    for candidate_d in range(0, 6):
-        if candidate_d < 0:
-            candidate_d = p + candidate_d  
+    for candidate_d in range(-votes, votes): 
         if pow(g, candidate_d, p) == m:
             d = candidate_d
             break
     return d
+
+def gcd(a,b):
+    while b != 0:
+        a, b = b, a % b
+    return a
+
+def primitive_roots(modulo):
+    roots = []
+    required_set = set(num for num in range (1, modulo) if gcd(num, modulo) == 1)
+
+    for g in range(1, modulo):
+        actual_set = set(pow(g, powers) % modulo for powers in range (1, modulo))
+        if required_set == actual_set:
+            roots.append(g)           
+    return roots
 
 @app.route('/setup', methods=['GET'])
 def setup():
@@ -116,8 +131,11 @@ def encrypt():
     try:
         vi = int(vi) 
         vi = pow(g,vi,p)
-        y = random.randint(1, p - 2)
+        # y = random.randint(1, p - 2)
+        primitive_roots_list = primitive_roots(p)
         # y = 3
+
+        y = random.choice(primitive_roots_list)
         c1 = pow(g, y, p)
         c2 = (vi * pow(h, y, p)) % p
 
@@ -136,7 +154,7 @@ def tally():
     try:
         data_from_5001, data_from_5002 = fetch_data_from_servers()
 
-        product_c1, product_c2 = calculate_modular_product(file_path, p)
+        product_c1, product_c2, votes = calculate_modular_product(file_path, p)
 
         w1, w2 = calculate_w1_w2(product_c1, data_from_5001, data_from_5002)
 
@@ -146,10 +164,11 @@ def tally():
 
         m = (mod_inv_c1_secret * product_c2) % p
 
-        d = calculate_d(m, g, p)
+        d = calculate_d(m, g, p, votes)
 
         return jsonify({
             "message": "Tally successful",
+            "votes": votes,
             "product_c1": product_c1,
             "product_c2": product_c2,
             "data_from_5001": data_from_5001,

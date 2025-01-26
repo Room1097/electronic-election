@@ -43,6 +43,11 @@ if __name__ == '__main__':
     # Ensure the data file exists
     if not os.path.exists(DATA_FILE):
         open(DATA_FILE, 'w').close()
-    port = int(os.getenv('PORT', 5001))  # Default to 5001 if no port is provided
-    host = int(os.getenv('HOST', "0.0.0.0"))  # Default to 5001 if no port is provided
+    # port = int(os.getenv('PORT', 5001))  # Default to 5001 if no port is provided
+    # host = int(os.getenv('HOST', "0.0.0.0"))  # Default to 5001 if no port is provided
+    
+    host = os.getenv('HOST', "0.0.0.0")  # Default to 0.0.0.0 for host
+    port = int(os.getenv('PORT', "5001"))  # Default to 5001 for port
     app.run(debug=True, host=host, port=port)
+
+
