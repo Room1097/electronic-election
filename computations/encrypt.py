@@ -4,20 +4,25 @@ import random
 from functools import reduce
 from flask_cors import CORS
 
-p = 23
-g = 5 
-secret = 3 
+
+p = 1009
+g = 541
+secret = 690 
 h = pow(g, secret, p) 
 
 n = 3  
 t = 2  
 # secret = random.randint(1, p-1) 
 
+primitive_roots_list = []
+
+BASE_URL = "http://127.0.0.1"
+
 app = Flask(__name__)
 CORS(app)
 
 def generate_polynomial(t, secret):
-    coefficients = [random.randint(1, 5) for _ in range(t - 1)] + [secret]
+    coefficients = [random.randint(-100, 100) for _ in range(t - 1)] + [secret]
     print(coefficients)
     return coefficients[::-1]
     # return [9, 3]
@@ -43,8 +48,8 @@ def calculate_modular_product(file_path, prime_p):
     return product_c1, product_c2, len(c1_values)
 
 def fetch_data_from_servers():
-    response_5001 = requests.get('http://127.0.0.1:5001/get-secret')
-    response_5002 = requests.get('http://127.0.0.1:5002/get-secret')
+    response_5001 = requests.get(f'{BASE_URL}:5001/get-secret')
+    response_5002 = requests.get(f'{BASE_URL}:5002/get-secret')
 
     if response_5001.status_code != 200 or response_5002.status_code != 200:
         raise Exception("Failed to retrieve data from one or both servers.")
@@ -61,13 +66,13 @@ def calculate_w1_w2(product_c1, data_from_5001, data_from_5002):
     print(product_c1)
     w1 = pow(product_c1, data_from_5001, p) 
     w2 = pow(product_c1, data_from_5002, p) 
-    print(w1)
-    print(w2)
+    # print(w1)
+    # print(w2)
     return w1, w2
 
 def calculate_c1_secret(w1, w2, l1=2, l2=-1):
-    print(w1)
-    print(w2)
+    # print(w1)
+    # print(w2)
     w1_l1 = pow(w1, l1, p)  # w1^l1 mod p
 
     w2_l2 = pow(w2, -1, p) if l2 == -1 else pow(w2, l2, p)
@@ -103,13 +108,17 @@ def setup():
     polynomial = generate_polynomial(t, secret)
     shares = {i: evaluate_polynomial(polynomial, i) for i in range(1, n + 1)}
 
+    with open('encrypted_data.txt', 'w') as file:
+        pass
+
+
     server_ports = [5001, 5002, 5003]
     responses = []
 
     for i, port in enumerate(server_ports, start=1):
         share = shares[i]
         try:
-            response = requests.post(f"http://127.0.0.1:{port}/receive", json={"value": share})
+            response = requests.post(f"{BASE_URL}:{port}/receive", json={"value": share})
             responses.append({"server_port": port, "share": share, "status": response.status_code})
         except requests.exceptions.RequestException as e:
             responses.append({"server_port": port, "share": share, "error": str(e)})
@@ -132,7 +141,7 @@ def encrypt():
         vi = int(vi) 
         vi = pow(g,vi,p)
         # y = random.randint(1, p - 2)
-        primitive_roots_list = primitive_roots(p)
+        # primitive_roots_list = primitive_roots(p)
         # y = 3
 
         y = random.choice(primitive_roots_list)
@@ -166,6 +175,15 @@ def tally():
 
         d = calculate_d(m, g, p, votes)
 
+        res = ""
+
+        if d and d < 0:
+            res = "Yes"
+        elif d == 0:
+            res = "Equal Votes"
+        else:
+            res = "No"
+
         return jsonify({
             "message": "Tally successful",
             "votes": votes,
@@ -178,12 +196,16 @@ def tally():
             "c1_secret": c1_secret,
             "mod_inv_c1_secret": mod_inv_c1_secret,
             "m": m,
-            "d": d if d is not None else "No solution found"
+            "d": abs(d) if d is not None else "No solution found",
+            "result" : res,
+            "public_key" : h
         }), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    # app.run(host='0.0.0.0', port=4434)
+    primitive_roots_list = primitive_roots(p)
+    app.run(port=4434)
 

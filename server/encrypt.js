@@ -3,7 +3,7 @@ const axios = require("axios");
 const router = express.Router();
 const { validUsers } = require("./user");
 
-const PYTHON_SERVER_URL = "http://127.0.0.1:5000";
+const PYTHON_SERVER_URL = process.env.PYTHON_SERVER_URL;
 
 router.get("/", (req, res) => {
   res.render("index");
@@ -91,7 +91,11 @@ router.get("/tally", async (req, res) => {
       mod_inv_c1_secret,
       m,
       d,
+      public_key,
+      votes,
+      result
     } = response.data;
+
 
     res.render("tally", {
       message,              
@@ -104,7 +108,10 @@ router.get("/tally", async (req, res) => {
       c1_secret,            
       mod_inv_c1_secret,    
       m,                    
-      d,                    
+      d,
+      public_key, 
+      votes      ,
+      result              
     });
   } catch (error) {
     console.error("Error with Python server:", error.message);

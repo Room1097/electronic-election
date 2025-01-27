@@ -69,7 +69,7 @@ async function extractCertsFromZip(zipPath) {
 
 async function createShare() {
   try {
-    const response = await axios.get("http://127.0.0.1:5000/setup")
+    const response = await axios.get("http://127.0.0.1:4434/setup")
     console.log("Flask setup API response:", response.data);
   } catch (error) {
     console.error("Error calling Flask setup API:", error.message);

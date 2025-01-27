@@ -3,42 +3,68 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tally Results</title>
+  <title>Election Bulletin Board</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 50px;
-    }
-    .results {
-      font-size: 1.2rem;
+      background-color: #f3f4f6;
       color: #333;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 2rem;
+      color: #222;
+      margin-bottom: 20px;
+    }
+    .bulletin-board {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .entry {
+      text-align: left;
+      margin-bottom: 15px;
+    }
+    .entry strong {
+      color: #000;
     }
     .result {
+      font-size: 1.5rem;
+      color: #007BFF;
       margin-top: 10px;
     }
     a {
-      color: blue;
+      color: #007BFF;
       text-decoration: none;
+      font-weight: bold;
       margin-top: 20px;
       display: inline-block;
+    }
+    a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <h1>Tally Results</h1>
-  <div class="results">
-    <p class="result">Message: <strong><%= message %></strong></p>
-    <p class="result">Product of c1 mod p: <strong><%= product_c1 %></strong></p>
-    <p class="result">Product of c2 mod p: <strong><%= product_c2 %></strong></p>
-    <p class="result">Data from Server 5001: <strong><%= data_from_5001 %></strong></p>
-    <p class="result">Data from Server 5002: <strong><%= data_from_5002 %></strong></p>
-    <p class="result">Value w1: <strong><%= w1 %></strong></p>
-    <p class="result">Value w2: <strong><%= w2 %></strong></p>
-    <p class="result">c1 Secret: <strong><%= c1_secret %></strong></p>
-    <p class="result">Modular Inverse of c1 Secret: <strong><%= mod_inv_c1_secret %></strong></p>
-    <p class="result">Decrypted Message (m): <strong><%= m %></strong></p>
-    <p class="result">Exponent d: <strong><%= d %></strong></p>
+  <h1>Election Bulletin Board</h1>
+  <div class="bulletin-board">
+    <div class="entry">
+      <p>Public Key: <strong><%= public_key %></strong></p>
+    </div>
+    <div class="entry">
+      <p>Number of Votes: <strong><%= votes %></strong></p>
+    </div>
+    <div class="entry">
+      <p>Lead By: <strong><%= d %></strong></p>
+    </div>
+    <div class="entry">
+      <p class="result">Result: <strong><%= result %></strong></p>
+    </div>
   </div>
   <a href="/">Back to Home</a>
 </body>
